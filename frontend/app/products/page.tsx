@@ -26,6 +26,7 @@ export default function Home() {
         setError(
           err.response?.data?.detail || err.message || "Failed to load products"
         );
+        console.log(error);
       } finally {
         setLoading(false);
       }
