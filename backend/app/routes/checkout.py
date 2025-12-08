@@ -17,7 +17,7 @@ async def checkout(
 ):
     # Get all cart items
     result = await session.execute(
-        select(CartItem).where(CartItem.owner_id == str(current_user.id))
+        select(CartItem).where(CartItem.owner_id == current_user.id)
     )
     cart_items = result.scalars().all()
 
@@ -33,7 +33,7 @@ async def checkout(
         total_price += product.price * item.quantity
 
     # Create order header
-    new_order = Order(owner_id=str(current_user.id), status="pending", total_price=total_price)
+    new_order = Order(owner_id=current_user.id, status="pending", total_price=total_price)
     session.add(new_order)
     await session.flush()  # ensures new_order.id exists
 

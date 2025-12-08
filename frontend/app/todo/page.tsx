@@ -11,7 +11,7 @@ interface Todo {
   title: string;
   content?: string;
   completed: boolean;
-  owner_id: string;
+  owner_id: number;
 }
 
 export default function Page() {

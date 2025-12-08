@@ -22,7 +22,7 @@ async def get_orders(
         result = await session.execute(
             select(Order)
             .options(selectinload(Order.items))  # <-- eagerly load items
-            .where(Order.owner_id == str(current_user.id))
+            .where(Order.owner_id == current_user.id)
         )
         orders = result.scalars().all()
         return orders
