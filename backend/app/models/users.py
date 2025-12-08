@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from fastapi_users.db import SQLAlchemyBaseUserTable
 from app.db import Base
 
-class User(SQLAlchemyBaseUserTable, Base):
+class User(SQLAlchemyBaseUserTable[int], Base):
     __tablename__ = "user"
 
     id = Column(Integer, primary_key=True, autoincrement=True)

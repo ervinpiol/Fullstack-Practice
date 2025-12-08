@@ -9,13 +9,11 @@ from fastapi_users.db import SQLAlchemyUserDatabase
 
 from app.models.users import User
 from app.db import get_user_db
-
-SECRET = "SECRET"
-
+from app.core.config import settings
 
 class UserManager(BaseUserManager[User, int]):
-    reset_password_token_secret = SECRET
-    verification_token_secret = SECRET
+    reset_password_token_secret = settings.SECRET_KEY
+    verification_token_secret = settings.SECRET_KEY
 
     async def on_after_register(self, user: User, request: Request | None = None):
         print(f"User {user.id} has registered.")
@@ -50,7 +48,7 @@ cookie_transport = CookieTransport(
 
 
 def get_jwt_strategy() -> JWTStrategy[models.UP, models.ID]:
-    return JWTStrategy(secret=SECRET, lifetime_seconds=3600)
+    return JWTStrategy(secret=settings.SECRET_KEY, lifetime_seconds=3600)
 
 
 # backend using cookie instead of bearer
