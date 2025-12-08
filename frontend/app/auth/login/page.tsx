@@ -23,6 +23,7 @@ export default function LoginPage() {
         }
       } catch (err) {
         // Not logged in, do nothing
+        console.log(err);
       }
     }
 

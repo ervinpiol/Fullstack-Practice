@@ -1,7 +1,5 @@
-import uuid
-
 from fastapi import Depends, Request
-from fastapi_users import BaseUserManager, FastAPIUsers, UUIDIDMixin, models
+from fastapi_users import BaseUserManager, FastAPIUsers, models
 from fastapi_users.authentication import (
     AuthenticationBackend,
     CookieTransport,
@@ -15,7 +13,7 @@ from app.db import get_user_db
 SECRET = "SECRET"
 
 
-class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
+class UserManager(BaseUserManager[User, int]):
     reset_password_token_secret = SECRET
     verification_token_secret = SECRET
 
@@ -31,6 +29,10 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
         self, user: User, token: str, request: Request | None = None
     ):
         print(f"Verification requested for user {user.id}. Verification token: {token}")
+
+    # 🔑 REQUIRED when not using UUIDs
+    def parse_id(self, id: str) -> int:
+        return int(id)
 
 
 async def get_user_manager(user_db: SQLAlchemyUserDatabase = Depends(get_user_db)):
@@ -59,6 +61,6 @@ auth_backend = AuthenticationBackend(
 )
 
 
-fastapi_users = FastAPIUsers[User, uuid.UUID](get_user_manager, [auth_backend])
+fastapi_users = FastAPIUsers[User, int](get_user_manager, [auth_backend])
 
 current_active_user = fastapi_users.current_user(active=True)

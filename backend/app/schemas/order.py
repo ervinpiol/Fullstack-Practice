@@ -2,8 +2,8 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 class OrderItemRead(BaseModel):
-    id: str
-    product_id: str
+    id: int
+    product_id: int
     quantity: int
     total_price: float
 
@@ -11,8 +11,8 @@ class OrderItemRead(BaseModel):
         from_attributes = True
 
 class OrderRead(BaseModel):
-    id: str
-    owner_id: str
+    id: int
+    owner_id: int
     status: str
     total_price: float
     items: List[OrderItemRead] = []

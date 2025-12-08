@@ -1,10 +1,20 @@
 "use client";
-import { useAuth } from "@/context/AuthContext";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  const { user, loading } = useAuth();
+  const router = useRouter();
 
-  if (loading) return <div>Loading...</div>;
+  useEffect(() => {
+    // Redirect the user to /auth/login immediately upon mounting
+    router.replace("/auth/login");
+  }, [router]);
 
-  return <div>Welcome {user.email}</div>;
+  // You can return a null or a loading indicator while the redirect happens
+  return (
+    <div>
+      <p>Redirecting to login...</p>
+    </div>
+  );
 }

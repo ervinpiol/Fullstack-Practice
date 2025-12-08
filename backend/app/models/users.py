@@ -1,28 +1,31 @@
-from sqlalchemy import Boolean, Column, String
+from sqlalchemy import Integer, Column, String
 from sqlalchemy.orm import relationship
-from fastapi_users.db import SQLAlchemyBaseUserTableUUID
+from fastapi_users.db import SQLAlchemyBaseUserTable
 from app.db import Base
 
-class User(SQLAlchemyBaseUserTableUUID, Base):
+class User(SQLAlchemyBaseUserTable, Base):
     __tablename__ = "user"
 
-    # Todos (owned by the user; safe to delete together)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=True)
+
+    # Todos owned by user
     todos = relationship(
         "Todo",
         back_populates="owner",
         cascade="all, delete-orphan"
     )
 
-    # Products (owned/created by the user; should be deleted with the user)
+    # Products owned by user
     products = relationship(
         "Product",
         back_populates="owner",
         cascade="all, delete-orphan"
     )
 
-    # Orders (historical records; NEVER delete this automatically)
+    # Orders (historical)
     orders = relationship(
         "Order",
         back_populates="owner",
-        cascade=None  # default: no cascade
+        cascade=None
     )

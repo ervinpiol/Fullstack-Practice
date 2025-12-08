@@ -25,6 +25,8 @@ async def create_db_and_tables():
     from app.models.users import User
     from app.models.todo import Todo
     from app.models.product import Product
+    from app.models.cart import CartItem
+    from app.models.order import Order
     
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

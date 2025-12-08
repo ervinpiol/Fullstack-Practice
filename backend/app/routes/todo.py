@@ -19,7 +19,7 @@ async def get_todos(
     current_user: User = Depends(fastapi_users.current_user()),
 ):
     try:
-        query = select(Todo).where(Todo.owner_id == str(current_user.id))
+        query = select(Todo).where(Todo.owner_id == current_user.id)
 
         if completed is not None:
             query = query.where(Todo.completed == completed)
@@ -39,7 +39,7 @@ async def get_todo(
 ):
     try:
         result = await session.execute(
-        select(Todo).where(Todo.id == todo_id, Todo.owner_id == str(current_user.id))
+        select(Todo).where(Todo.id == todo_id, Todo.owner_id == current_user.id)
     )
         todo = result.scalars().first()
 
@@ -60,7 +60,7 @@ async def create_todo(
 ):
     try:
         todo_data = todo.model_dump(exclude_unset=True)
-        new_todo = Todo(**todo_data, owner_id=str(current_user.id))
+        new_todo = Todo(**todo_data, owner_id=current_user.id)
 
         session.add(new_todo)
         await session.commit()
@@ -81,7 +81,7 @@ async def update_todo(
 ):
     try:
         result = await session.execute(
-            select(Todo).where(Todo.id == todo_id, Todo.owner_id == str(current_user.id))
+            select(Todo).where(Todo.id == todo_id, Todo.owner_id == current_user.id)
         )
 
         todo = result.scalars().first()
@@ -111,7 +111,7 @@ async def delete_todo(
 ):
     try:
         result = await session.execute(
-            select(Todo).where(Todo.id == todo_id, Todo.owner_id == str(current_user.id))
+            select(Todo).where(Todo.id == todo_id, Todo.owner_id == current_user.id)
         )
 
         todo = result.scalars().first()

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import Optional
 
 class TodoBase(BaseModel):
@@ -15,8 +15,8 @@ class TodoUpdate(BaseModel):
     completed: Optional[bool] = None
 
 class TodoRead(TodoBase):
-    id: str
-    owner_id: str
+    id: int
+    owner_id: int
 
     class Config:
         from_attributes = True

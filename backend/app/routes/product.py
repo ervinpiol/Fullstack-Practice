@@ -47,7 +47,7 @@ async def create_product(
     """
     try:
         product_data = product_in.model_dump(exclude_unset=True) 
-        new_product = Product(**product_data, owner_id=str(current_user.id))
+        new_product = Product(**product_data, owner_id=current_user.id)
 
         session.add(new_product)
         await session.commit()

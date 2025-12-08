@@ -1,22 +1,30 @@
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.orm import DeclarativeBase
 from fastapi_users.db import SQLAlchemyUserDatabase
 from fastapi import Depends
+from app.core.config import settings
 from typing import AsyncGenerator
-
-DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
 class Base(DeclarativeBase):
     """Base class for all SQLAlchemy models."""
     pass
 
-engine = create_async_engine(DATABASE_URL, echo=True)
-async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+engine = create_async_engine(
+    settings.SUPABASE_DB_URL,
+    echo=True,  # turn off in production
+)
+
+AsyncSessionLocal = async_sessionmaker(
+    engine,
+    autoflush=False,
+    expire_on_commit=False,
+    class_=AsyncSession,
+)
 
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
-    """Dependency that yields an asynchronous database session."""
-    async with async_session() as session:
+    async with AsyncSessionLocal() as session:
         yield session
+
 
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
     """

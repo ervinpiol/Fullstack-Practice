@@ -20,7 +20,7 @@ async def get_cart_items(
     try:
         result = await session.execute(
             select(CartItem)
-            .where(CartItem.owner_id == str(current_user.id))
+            .where(CartItem.owner_id == current_user.id)
         )
         items = result.scalars().all()
         return items
@@ -52,7 +52,7 @@ async def add_to_cart(
         result = await session.execute(
             select(CartItem)
             .where(CartItem.product_id == item.product_id)
-            .where(CartItem.owner_id == str(current_user.id))
+            .where(CartItem.owner_id == current_user.id)
         )
         existing_item = result.scalars().first()
 
@@ -62,7 +62,7 @@ async def add_to_cart(
         else:
             # existing_item = CartItem(...)
             existing_item = CartItem(
-                owner_id=str(current_user.id),
+                owner_id=current_user.id,
                 product_id=item.product_id,
                 quantity=item.quantity
             )
@@ -96,7 +96,7 @@ async def update_quantity(
         result = await session.execute(
             select(CartItem)
             .where(CartItem.id == cart_item_id)
-            .where(CartItem.owner_id == str(current_user.id))
+            .where(CartItem.owner_id == current_user.id)
         )
         cart_item = result.scalars().first()
 
@@ -155,7 +155,7 @@ async def remove_product(
         result = await session.execute(
             select(CartItem)
             .where(CartItem.id == cart_item_id)
-            .where(CartItem.owner_id == str(current_user.id))
+            .where(CartItem.owner_id == current_user.id)
         )
         cart_item = result.scalars().first()
 
