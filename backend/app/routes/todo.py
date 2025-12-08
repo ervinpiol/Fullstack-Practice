@@ -33,7 +33,7 @@ async def get_todos(
 
 @router.get("/{todo_id}", response_model=TodoRead)
 async def get_todo(
-    todo_id: str,
+    todo_id: int,
     session: AsyncSession = Depends(get_async_session),
     current_user: User = Depends(fastapi_users.current_user()),
 ):
@@ -74,7 +74,7 @@ async def create_todo(
 
 @router.patch("/{todo_id}", response_model=TodoRead)
 async def update_todo(
-    todo_id: str,
+    todo_id: int,
     todo_update: TodoUpdate = Body(...),
     session: AsyncSession = Depends(get_async_session),
     current_user: User = Depends(fastapi_users.current_user()),
@@ -105,7 +105,7 @@ async def update_todo(
 
 @router.delete("/{todo_id}")
 async def delete_todo(
-    todo_id: str,
+    todo_id: int,
     session: AsyncSession = Depends(get_async_session),
     current_user: User = Depends(fastapi_users.current_user()),
 ):

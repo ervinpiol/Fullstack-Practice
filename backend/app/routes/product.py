@@ -22,7 +22,7 @@ async def get_products(session: AsyncSession = Depends(get_async_session)):
     
 @router.get("/{product_id}", response_model=ProductRead)
 async def get_product(
-    product_id: str,
+    product_id: int,
     session: AsyncSession = Depends(get_async_session)
 ):
     try:
@@ -60,7 +60,7 @@ async def create_product(
 
 @router.patch("/{product_id}")
 async def update_product(
-    product_id: str,
+    product_id: int,
     product_in: ProductUpdate = Body(...),
     session: AsyncSession = Depends(get_async_session)
 ):
@@ -93,7 +93,7 @@ async def update_product(
 
 @router.delete("/{product_id}")
 async def delete_product(
-    product_id: str,
+    product_id: int,
     session: AsyncSession = Depends(get_async_session)
 ):
     try:

@@ -1,15 +1,15 @@
 from pydantic import BaseModel, Field
 
 class CartItemCreate(BaseModel):
-    product_id: str
+    product_id: int
     quantity: int = Field(1, ge=1)
 
 class CartItemUpdate(BaseModel):
-    product_id: str
+    product_id: int
     quantity: int
 
 class ProductInCart(BaseModel):
-    id: str
+    id: int
     name: str
     price: float
     image: str | None = None
@@ -19,7 +19,7 @@ class ProductInCart(BaseModel):
 
 
 class CartItemRead(BaseModel):
-    id: str
+    id: int
     product: ProductInCart
     quantity: int
 

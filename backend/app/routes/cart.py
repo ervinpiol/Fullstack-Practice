@@ -82,7 +82,7 @@ async def add_to_cart(
 
 @router.put("/{cart_item_id}", response_model=CartItemRead)
 async def update_quantity(
-    cart_item_id: str,
+    cart_item_id: int,
     item: CartItemUpdate,
     session: AsyncSession = Depends(get_async_session),
     current_user: User = Depends(fastapi_users.current_user())
@@ -142,7 +142,7 @@ async def update_quantity(
 
 @router.delete("/{cart_item_id}")
 async def remove_product(
-    cart_item_id: str,
+    cart_item_id: int,
     session: AsyncSession = Depends(get_async_session),
     current_user: User = Depends(fastapi_users.current_user())
 ):
