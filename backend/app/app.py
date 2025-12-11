@@ -7,6 +7,7 @@ from app.routes.users import auth_backend, fastapi_users
 from app.schemas.users import UserRead, UserCreate, UserUpdate
 
 # Routers
+from app.routes.user import router as user_router
 from app.routes.todo import router as todo_router
 from app.routes.product import router as product_router
 from app.routes.cart import router as cart_router
@@ -93,3 +94,4 @@ app.include_router(product_router)
 app.include_router(cart_router)
 app.include_router(checkout_router)
 app.include_router(order_router)
+app.include_router(user_router)
