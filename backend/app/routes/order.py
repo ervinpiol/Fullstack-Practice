@@ -1,11 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Body
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 from sqlalchemy.future import select
 
-from app.db import get_async_session
-from app.models.product import Product
+from app.core.engine import get_session
 from app.models.order import Order
-from app.schemas.order import OrderCreate, OrderRead, OrderUpdate
+from app.schemas.order import OrderRead
 from app.routes.users import fastapi_users
 from app.models.users import User
 from typing import List
@@ -14,12 +13,12 @@ from sqlalchemy.orm import selectinload
 router = APIRouter(prefix="/order", tags=["Order"])
 
 @router.get("", response_model=List[OrderRead])
-async def get_orders(
+def get_orders(
     current_user: User = Depends(fastapi_users.current_user()),
-    session: AsyncSession = Depends(get_async_session)
+    session: Session = Depends(get_session)
 ):
     try:
-        result = await session.execute(
+        result = session.execute(
             select(Order)
             .options(selectinload(Order.items))  # <-- eagerly load items
             .where(Order.owner_id == current_user.id)

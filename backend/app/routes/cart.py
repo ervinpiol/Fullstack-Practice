@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Body
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 from sqlalchemy.future import select
 
-from app.db import get_async_session
+from app.core.engine import get_session
 from app.models.product import Product
 from app.models.cart import CartItem
 from app.schemas.cart import CartItemCreate, CartItemRead, CartItemUpdate
@@ -13,12 +13,12 @@ from typing import List
 router = APIRouter(prefix="/cart/items", tags=["Cart"])
 
 @router.get("", response_model=List[CartItemRead])
-async def get_cart_items(
+def get_cart_items(
     current_user: User = Depends(fastapi_users.current_user()),
-    session: AsyncSession = Depends(get_async_session)
+    session: Session = Depends(get_session)
 ):
     try:
-        result = await session.execute(
+        result = session.execute(
             select(CartItem)
             .where(CartItem.owner_id == current_user.id)
         )
@@ -30,14 +30,14 @@ async def get_cart_items(
 
 
 @router.post("", response_model=CartItemRead)
-async def add_to_cart(
+def add_to_cart(
     item: CartItemCreate,
-    session: AsyncSession = Depends(get_async_session),
+    session: Session = Depends(get_session),
     current_user: User = Depends(fastapi_users.current_user())
 ):
     try:
         # Check product
-        result = await session.execute(
+        result = session.execute(
             select(Product).where(Product.id == item.product_id)
         )
         product = result.scalars().first()
@@ -49,7 +49,7 @@ async def add_to_cart(
             raise HTTPException(400, "Not enough stock")
 
         # Check existing cart item for this owner
-        result = await session.execute(
+        result = session.execute(
             select(CartItem)
             .where(CartItem.product_id == item.product_id)
             .where(CartItem.owner_id == current_user.id)
@@ -69,22 +69,22 @@ async def add_to_cart(
             session.add(existing_item)
         
         # Commit
-        await session.commit()
-        await session.refresh(existing_item)
+        session.commit()
+        session.refresh(existing_item)
 
         return existing_item
 
     except Exception as e:
-        await session.rollback()
+        session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
 
 @router.put("/{cart_item_id}", response_model=CartItemRead)
-async def update_quantity(
+def update_quantity(
     cart_item_id: int,
     item: CartItemUpdate,
-    session: AsyncSession = Depends(get_async_session),
+    session: Session = Depends(get_session),
     current_user: User = Depends(fastapi_users.current_user())
 ):
     """
@@ -93,7 +93,7 @@ async def update_quantity(
     """
     try:
         # Get cart item
-        result = await session.execute(
+        result = session.execute(
             select(CartItem)
             .where(CartItem.id == cart_item_id)
             .where(CartItem.owner_id == current_user.id)
@@ -108,7 +108,7 @@ async def update_quantity(
             raise HTTPException(status_code=400, detail="Product ID mismatch")
 
         # Get product
-        result = await session.execute(
+        result = session.execute(
             select(Product).where(Product.id == item.product_id)
         )
         product = result.scalars().first()
@@ -130,20 +130,20 @@ async def update_quantity(
 
         session.add(cart_item)
         session.add(product)
-        await session.commit()
-        await session.refresh(cart_item, attribute_names=["product"])
+        session.commit()
+        session.refresh(cart_item, attribute_names=["product"])
 
         return cart_item
 
     except Exception as e:
-        await session.rollback()
+        session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/{cart_item_id}")
-async def remove_product(
+def remove_product(
     cart_item_id: int,
-    session: AsyncSession = Depends(get_async_session),
+    session: Session = Depends(get_session),
     current_user: User = Depends(fastapi_users.current_user())
 ):
     """
@@ -152,7 +152,7 @@ async def remove_product(
     """
     try:
         # Get cart item
-        result = await session.execute(
+        result = session.execute(
             select(CartItem)
             .where(CartItem.id == cart_item_id)
             .where(CartItem.owner_id == current_user.id)
@@ -163,17 +163,17 @@ async def remove_product(
             raise HTTPException(status_code=404, detail="Cart item not found")
         
         # Get the product to restore stock
-        result = await session.execute(
+        result = session.execute(
             select(Product).where(Product.id == cart_item.product_id)
         )
 
         # Remove item from the cart
-        await session.delete(cart_item)
-        await session.commit()
+        session.delete(cart_item)
+        session.commit()
 
         return {"success": True, "message": "Product successfully removed from the cart"}
 
     except Exception as e:
-        await session.rollback()
+        session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
     

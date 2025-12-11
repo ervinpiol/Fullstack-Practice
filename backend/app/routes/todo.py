@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Body
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, HTTPException, Body
+from sqlalchemy.orm import Session
 from sqlalchemy.future import select
 
-from app.db import get_async_session
+from app.core.engine import get_session
 from app.models.todo import Todo
 from app.schemas.todo import TodoCreate, TodoRead, TodoUpdate
 from typing import Optional
@@ -13,9 +13,9 @@ router = APIRouter(prefix="/todo", tags=["Todo"])
 
 
 @router.get("", response_model=list[TodoRead])
-async def get_todos(
+def get_todos(
     completed: Optional[bool] = None,
-    session: AsyncSession = Depends(get_async_session),
+    session: Session = Depends(get_session),
     current_user: User = Depends(fastapi_users.current_user()),
 ):
     try:
@@ -24,7 +24,7 @@ async def get_todos(
         if completed is not None:
             query = query.where(Todo.completed == completed)
 
-        result = await session.execute(query)
+        result = session.execute(query)
         todos = result.scalars().all()
         return todos
     except Exception as e:
@@ -32,13 +32,13 @@ async def get_todos(
 
 
 @router.get("/{todo_id}", response_model=TodoRead)
-async def get_todo(
+def get_todo(
     todo_id: int,
-    session: AsyncSession = Depends(get_async_session),
+    session: Session = Depends(get_session),
     current_user: User = Depends(fastapi_users.current_user()),
 ):
     try:
-        result = await session.execute(
+        result = session.execute(
         select(Todo).where(Todo.id == todo_id, Todo.owner_id == current_user.id)
     )
         todo = result.scalars().first()
@@ -53,9 +53,9 @@ async def get_todo(
 
 
 @router.post("", response_model=TodoRead)
-async def create_todo(
+def create_todo(
     todo: TodoCreate,
-    session: AsyncSession = Depends(get_async_session),
+    session: Session = Depends(get_session),
     current_user: User = Depends(fastapi_users.current_user()),
 ):
     try:
@@ -63,8 +63,8 @@ async def create_todo(
         new_todo = Todo(**todo_data, owner_id=current_user.id)
 
         session.add(new_todo)
-        await session.commit()
-        await session.refresh(new_todo)
+        session.commit()
+        session.refresh(new_todo)
 
         return new_todo
     
@@ -73,14 +73,14 @@ async def create_todo(
 
 
 @router.patch("/{todo_id}", response_model=TodoRead)
-async def update_todo(
+def update_todo(
     todo_id: int,
     todo_update: TodoUpdate = Body(...),
-    session: AsyncSession = Depends(get_async_session),
+    session: Session = Depends(get_session),
     current_user: User = Depends(fastapi_users.current_user()),
 ):
     try:
-        result = await session.execute(
+        result = session.execute(
             select(Todo).where(Todo.id == todo_id, Todo.owner_id == current_user.id)
         )
 
@@ -94,8 +94,8 @@ async def update_todo(
             setattr(todo, key, value)
 
         session.add(todo)
-        await session.commit()
-        await session.refresh(todo)
+        session.commit()
+        session.refresh(todo)
 
         return todo
 
@@ -104,13 +104,13 @@ async def update_todo(
 
 
 @router.delete("/{todo_id}")
-async def delete_todo(
+def delete_todo(
     todo_id: int,
-    session: AsyncSession = Depends(get_async_session),
+    session: Session = Depends(get_session),
     current_user: User = Depends(fastapi_users.current_user()),
 ):
     try:
-        result = await session.execute(
+        result = session.execute(
             select(Todo).where(Todo.id == todo_id, Todo.owner_id == current_user.id)
         )
 
@@ -119,8 +119,8 @@ async def delete_todo(
         if not todo:
             raise HTTPException(status_code=404, detail="Todo not found")
 
-        await session.delete(todo)
-        await session.commit()
+        session.delete(todo)
+        session.commit()
 
         return {"success": True, "message": "Todo successfully deleted"}
 

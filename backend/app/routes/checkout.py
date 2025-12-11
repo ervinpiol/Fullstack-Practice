@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from sqlalchemy.future import select
-from app.db import get_async_session
+from app.core.engine import get_session
 from app.models.users import User
 from app.models.order import Order, OrderItem
 from app.routes.users import fastapi_users
@@ -11,12 +11,12 @@ from typing import List
 router = APIRouter(prefix="/checkout", tags=["Checkout"])
 
 @router.post("")
-async def checkout(
-    session: AsyncSession = Depends(get_async_session),
+def checkout(
+    session: Session = Depends(get_session),
     current_user: User = Depends(fastapi_users.current_user())
 ):
     # Get all cart items
-    result = await session.execute(
+    result = session.execute(
         select(CartItem).where(CartItem.owner_id == current_user.id)
     )
     cart_items = result.scalars().all()
@@ -35,7 +35,7 @@ async def checkout(
     # Create order header
     new_order = Order(owner_id=current_user.id, status="pending", total_price=total_price)
     session.add(new_order)
-    await session.flush()  # ensures new_order.id exists
+    session.flush()  # ensures new_order.id exists
 
     # Create order items and deduct stock
     for item in cart_items:
@@ -55,7 +55,7 @@ async def checkout(
         session.add(product)
 
         # Remove item from cart
-        await session.delete(item)
+        session.delete(item)
 
-    await session.commit()
+    session.commit()
     return {"success": True, "message": "Checkout successful!"}

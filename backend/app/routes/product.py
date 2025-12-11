@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Body
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from sqlalchemy.future import select
 
-from app.db import get_async_session
+from app.core.engine import get_session
 from app.models.product import Product
 from app.schemas.product import ProductCreate, ProductRead, ProductUpdate
 from app.routes.users import fastapi_users
@@ -12,21 +12,21 @@ from typing import List
 router = APIRouter(prefix="/product", tags=["Product"])
 
 @router.get("", response_model=List[ProductRead])
-async def get_products(session: AsyncSession = Depends(get_async_session)):
+def get_products(session: Session = Depends(get_session)):
     try:
-        result = await session.execute(select(Product))
+        result = session.execute(select(Product))
         products = result.scalars().all()
         return products
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
 @router.get("/{product_id}", response_model=ProductRead)
-async def get_product(
+def get_product(
     product_id: int,
-    session: AsyncSession = Depends(get_async_session)
+    session: Session = Depends(get_session)
 ):
     try:
-        result = await session.execute(select(Product).where(Product.id == product_id))
+        result = session.execute(select(Product).where(Product.id == product_id))
         product = result.scalars().first()
 
         if not product:
@@ -37,9 +37,9 @@ async def get_product(
         raise HTTPException(status_code=500, detail=str(e))  
     
 @router.post("", response_model=ProductRead, status_code=status.HTTP_201_CREATED)
-async def create_product(
+def create_product(
     product_in: ProductCreate,
-    session: AsyncSession = Depends(get_async_session),
+    session: Session = Depends(get_session),
     current_user: User = Depends(fastapi_users.current_user()),
 ):
     """
@@ -50,25 +50,25 @@ async def create_product(
         new_product = Product(**product_data, owner_id=current_user.id)
 
         session.add(new_product)
-        await session.commit()
-        await session.refresh(new_product)
+        session.commit()
+        session.refresh(new_product)
 
         return new_product
     except Exception as e:
-        await session.rollback()
+        session.rollback()
         raise HTTPException(status_code=500, detail=f"Error creating product: {str(e)}")
 
 @router.patch("/{product_id}")
-async def update_product(
+def update_product(
     product_id: int,
     product_in: ProductUpdate = Body(...),
-    session: AsyncSession = Depends(get_async_session)
+    session: Session = Depends(get_session)
 ):
     """
     Partially update a product by ID
     """
     try:
-        result = await session.execute(select(Product).where(Product.id == product_id))
+        result = session.execute(select(Product).where(Product.id == product_id))
         product = result.scalars().first()
 
         if not product:
@@ -81,30 +81,30 @@ async def update_product(
 
         # Commit changes
         session.add(product)
-        await session.commit()
-        await session.refresh(product)
+        session.commit()
+        session.refresh(product)
 
         return product
         
     except Exception as e:
-        await session.rollback()
+        session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/{product_id}")
-async def delete_product(
+def delete_product(
     product_id: int,
-    session: AsyncSession = Depends(get_async_session)
+    session: Session = Depends(get_session)
 ):
     try:
-        result = await session.execute(select(Product).where(Product.id == product_id))
+        result = session.execute(select(Product).where(Product.id == product_id))
         product = result.scalars().first()
 
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
         
-        await session.delete(product)
-        await session.commit()
+        session.delete(product)
+        session.commit()
 
         return {"success": True, "message": "Product successfully deleted"}
         
